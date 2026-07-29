@@ -12,7 +12,8 @@ on:
 jobs:
   changelog:
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'dependencies') && !contains(github.event.pull_request.labels.*.name, 'Skip Changelog')}}
+    # disabled on the seal fork: runs no tests; seal-xplat.yml is the CI of record
+    if: false
 
     steps:
       - uses: actions/checkout@v3

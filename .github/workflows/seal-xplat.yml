@@ -1,0 +1,120 @@
+# Seal cross-platform CI for @opentelemetry/propagator-jaeger.
+#
+# Mirrors the sealed Docker build (/run.sh) step-for-step:
+#   npm install --ignore-scripts
+#   npx lerna bootstrap --scope @opentelemetry/propagator-jaeger --include-dependencies
+#   npm run version   (dependency order)
+#   npm run compile   (dependency order)
+#   npm test          (packages/opentelemetry-propagator-jaeger — nyc ts-mocha, real suite)
+#
+# Linux legs mirror the Docker matrix (Node 14/16/18/19); the windows-latest leg
+# is the cross-platform coverage this workflow exists for.
+name: seal-xplat
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  node-tests:
+    name: node-tests (ubuntu, node ${{ matrix.node_version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node_version:
+          - "14"
+          - "16"
+          - "18"
+          - "19"
+    env:
+      NPM_CONFIG_UNSAFE_PERM: true
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Configure npm time machine registry
+        run: npm config set registry https://:2023-03-20T16%3A10%3A33.055000Z@time-machines-npm.sealsecurity.io/
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node_version }}
+
+      # Root postinstall (update-ts-configs && lerna bootstrap) is skipped so the
+      # bootstrap below can be scoped to the target package's dependency closure.
+      - name: Install (root, --ignore-scripts)
+        run: npm install --ignore-scripts
+
+      - name: Bootstrap (scoped to @opentelemetry/propagator-jaeger + deps)
+        run: npx lerna bootstrap --scope @opentelemetry/propagator-jaeger --include-dependencies --hoist --nohoist='zone.js'
+
+      - name: Generate version.ts files
+        shell: bash
+        run: |
+          for d in api packages/opentelemetry-semantic-conventions packages/opentelemetry-core packages/opentelemetry-propagator-jaeger; do
+            echo "=== version-update: $d ==="
+            ( cd "$d" && npm run version --ignore-scripts )
+          done
+
+      - name: Build
+        shell: bash
+        run: |
+          for d in api packages/opentelemetry-semantic-conventions packages/opentelemetry-core packages/opentelemetry-propagator-jaeger; do
+            echo "=== compile: $d ==="
+            ( cd "$d" && npm run compile --ignore-scripts )
+          done
+
+      - name: Unit tests
+        shell: bash
+        run: |
+          cd packages/opentelemetry-propagator-jaeger
+          npm test
+
+  node-windows-tests:
+    name: node-windows-tests (windows, node 19)
+    runs-on: windows-latest
+    env:
+      NPM_CONFIG_UNSAFE_PERM: true
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Configure npm time machine registry
+        run: npm config set registry https://:2023-03-20T16%3A10%3A33.055000Z@time-machines-npm.sealsecurity.io/
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '19'
+
+      - name: Install (root, --ignore-scripts)
+        run: npm install --ignore-scripts
+
+      - name: Bootstrap (scoped to @opentelemetry/propagator-jaeger + deps)
+        run: npx lerna bootstrap --scope @opentelemetry/propagator-jaeger --include-dependencies --hoist --nohoist='zone.js'
+
+      # The package scripts use POSIX quoting (single-quoted globs, `--exclude`),
+      # which cmd.exe mis-parses: point npm's script-shell at git bash first.
+      - name: Configure npm script-shell (git bash)
+        run: npm config set script-shell "C:\\Program Files\\git\\bin\\bash.exe"
+
+      - name: Generate version.ts files
+        shell: bash
+        run: |
+          for d in api packages/opentelemetry-semantic-conventions packages/opentelemetry-core packages/opentelemetry-propagator-jaeger; do
+            echo "=== version-update: $d ==="
+            ( cd "$d" && npm run version --ignore-scripts )
+          done
+
+      - name: Build
+        shell: bash
+        run: |
+          for d in api packages/opentelemetry-semantic-conventions packages/opentelemetry-core packages/opentelemetry-propagator-jaeger; do
+            echo "=== compile: $d ==="
+            ( cd "$d" && npm run compile --ignore-scripts )
+          done
+
+      - name: Unit tests
+        shell: bash
+        run: |
+          cd packages/opentelemetry-propagator-jaeger
+          npm test

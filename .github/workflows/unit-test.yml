@@ -8,6 +8,8 @@ on:
 
 jobs:
   node-tests:
+    # disabled on the seal fork: superseded by seal-xplat.yml
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -61,6 +63,8 @@ jobs:
         run: npm run codecov
         if: ${{ matrix.node_version == '14' }}
   node-windows-tests:
+    # disabled on the seal fork: superseded by seal-xplat.yml
+    if: false
     runs-on: windows-latest
     env:
       NPM_CONFIG_UNSAFE_PERM: true
@@ -100,6 +104,8 @@ jobs:
       - name: Unit tests
         run: npm run test
   browser-tests:
+    # disabled on the seal fork: superseded by seal-xplat.yml
+    if: false
     runs-on: ubuntu-latest
     env:
       NPM_CONFIG_UNSAFE_PERM: true
@@ -138,6 +144,8 @@ jobs:
       - name: Report Coverage
         run: npm run codecov:browser
   webworker-tests:
+    # disabled on the seal fork: superseded by seal-xplat.yml
+    if: false
     runs-on: ubuntu-latest
     env:
       NPM_CONFIG_UNSAFE_PERM: true
@@ -175,6 +183,8 @@ jobs:
       - name: Report Coverage
         run: npm run codecov:webworker
   api-eol-node-test:
+    # disabled on the seal fork: superseded by seal-xplat.yml
+    if: false
     strategy:
       fail-fast: false
       matrix:

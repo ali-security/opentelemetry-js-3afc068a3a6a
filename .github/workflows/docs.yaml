@@ -6,6 +6,8 @@ on:
 
 jobs:
   build-and-deploy:
+    # disabled on the seal fork: deploy job, needs upstream secrets
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

@@ -9,6 +9,8 @@ on:
 
 jobs:
   peer-api-check:
+    # disabled on the seal fork: dependency-semantics check, runs no tests
+    if: false
     runs-on: ubuntu-latest
     container:
       image: node:18

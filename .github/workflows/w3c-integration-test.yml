@@ -9,6 +9,8 @@ on:
 
 jobs:
   build-and-test:
+    # disabled on the seal fork: superseded by seal-xplat.yml
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️

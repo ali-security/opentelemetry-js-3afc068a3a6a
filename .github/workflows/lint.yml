@@ -9,6 +9,8 @@ on:
 
 jobs:
   build:
+    # disabled on the seal fork: lint/docs job, runs no tests
+    if: false
     runs-on: ubuntu-latest
 
     steps:

@@ -16,6 +16,8 @@ on:
 
 jobs:
   CodeQL-Build:
+    # disabled on the seal fork: runs no tests; seal-xplat.yml is the CI of record
+    if: false
     runs-on: ubuntu-latest
 
     steps:
